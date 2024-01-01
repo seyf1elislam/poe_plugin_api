@@ -1,0 +1,33 @@
+{
+  "name": "poe_plugin",
+  "version": "1.0.0",
+  "description": "Poe Plugin for ST",
+  "main": "poe_plugin.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "seyf1elislam",
+  "license": "ISC",
+  "dependencies": {
+    "chromedriver": "^120.0.1",
+    "express": "^4.18.2",
+    "fs": "^0.0.1-security",
+    "puppeteer": "^21.6.1",
+    "puppeteer-core": "^21.6.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "random-useragent": "^0.5.0",
+    "selenium-webdriver": "^4.16.0",
+    "turndown": "^7.1.2"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seyf1elislam/poe_plugin_forST.git"
+  },
+  "bugs": {
+    "url": "https://github.com/seyf1elislam/poe_plugin_forST/issues"
+  },
+  "homepage": "https://github.com/seyf1elislam/poe_plugin_forST#readme"
+}
