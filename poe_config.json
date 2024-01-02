@@ -1,4 +1,5 @@
 {
     "token": "Write your token here",
-    "cashed_bot": "gptforst"
+    "cashed_bot": "gptforst",
+    "max_word_length_per_message": 1500
 }
