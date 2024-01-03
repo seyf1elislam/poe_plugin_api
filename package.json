@@ -1,7 +1,7 @@
 {
   "name": "poe_plugin",
   "version": "1.0.0",
-  "description": "Poe Plugin for ST",
+  "description": "Poe Plugin Api",
   "main": "poe_plugin.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -18,16 +18,14 @@
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "random-useragent": "^0.5.0",
-    "selenium-webdriver": "^4.16.0",
     "turndown": "^7.1.2"
   },
-  "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/seyf1elislam/poe_plugin_forST.git"
+    "url": "git+https://github.com/seyf1elislam/poe_plugin_api.git"
   },
   "bugs": {
-    "url": "https://github.com/seyf1elislam/poe_plugin_forST/issues"
+    "url": "https://github.com/seyf1elislam/poe_plugin_api/issues"
   },
-  "homepage": "https://github.com/seyf1elislam/poe_plugin_forST#readme"
+  "homepage": "https://github.com/seyf1elislam/poe_plugin_api#readme"
 }

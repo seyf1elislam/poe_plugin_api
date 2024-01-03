@@ -1,1 +1,4 @@
 /node_modules
+poe_config.json
+/tmp
+.gitignore
