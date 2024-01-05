@@ -27,41 +27,30 @@ function wrap_textchunk_in_openai_jsonformat(bot, content) {
 //?===========================================
 //?===========================================
 //?===========================================
+//for long messages , takes a list of messages and send them one by one
 async function send_messages_list(client, prompt_list) {
+  await delay(50);
   for (let i = 0; i < prompt_list.length - 1; i++) {
     //?send messsage
     console.log("sending msg part-----");
     await client.sendMessage(prompt_list[i]);
-    await delay(300);
+    await delay(1000);
     await client.abortMessage();
-    console.log("aborted message-----");
+    await delay(100);
+    await client.deleteMessages(1);
+    console.log("aborted-----");
 
-    await delay(50);
-    let stillGenerating = await client.isGenerating();
-    console.log("check generating-----", stillGenerating);
-
-    while (stillGenerating) {
-      await client.abortMessage();
-      await delay(50);
-      stillGenerating = await client.isGenerating();
-      console.log("check generating-----", stillGenerating);
-    }
-    await delay(50);
-    let checkNumberOfMessages = await client.checkNumberOfMessages();
-    if (checkNumberOfMessages > 1) {
-      console.log("messages are more than 2 ,deleting", checkNumberOfMessages);
-      await client.deleteMessages(1);
-    } else {
-      console.log("messages are less than 2");
-    }
   }
   //?send last message
   await client.sendMessage(prompt_list[prompt_list.length - 1]);
+  await delay(50);
   console.log("sending last msg part-----");
 }
+
 //?===========================================
 //?===========================================
 //?===========================================
+//? handler for sending messages 
 async function sendMessageHandler(client, prompt) {
   console.log("prompt.length ", prompt.length);
   if (prompt.length > 9000) {

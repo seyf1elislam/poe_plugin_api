@@ -200,8 +200,8 @@ function registerEndpoints(app, jsonParser) {
     request.socket.on("close", function () {
       isGenerationStopped = true;
       console.log("socket closed ------------------");
-      request.socket.end("request----");
-      response.end("response----");
+      // request.socket.end("");
+      // response.end("response----");
       if (client) {
         abortController.abort();
       }
@@ -236,7 +236,14 @@ function registerEndpoints(app, jsonParser) {
     //? sentm message
     // await client.sendMessage(prompt);
     // await sendMessageHandler(client, prompt);
-    await sendMessageHandlerWord(client, prompt, max_word_length_per_message); //? send message word by word
+    
+    try {
+      await sendMessageHandlerWord(client, prompt, max_word_length_per_message); //? send message word by word
+      
+    } catch (error) {
+      poeClientCache = {}
+      return response.sendStatus(500);
+    }
     //?===========================================
     //?===========================================
     await delay(100);
@@ -277,11 +284,7 @@ function registerEndpoints(app, jsonParser) {
           let newText = newReply.substring(reply.length);
 
           reply = newReply;
-          // let json = chat_streaming_chunk_json(bot, newText);
 
-          // let json = JSON.stringify({
-          //   choices: [{ delta: { content: newText } }],
-          // });
           let json = wrap_textchunk_in_openai_jsonformat(bot, newText);
           // response.write(json + "\n\n", "utf-8");
           response.write(`data: ${json}\n\n`, "utf-8");
@@ -295,8 +298,7 @@ function registerEndpoints(app, jsonParser) {
       } catch (err) {
         console.error(err);
       } finally {
-        response.end(); //"response----"
-        // request.socket.end("request----");
+        response.end();
       }
     } else {
       //?====================================================================
@@ -337,13 +339,15 @@ function registerEndpoints(app, jsonParser) {
         reply = {
           choices: [{ message: { content: reply.replace(/_/g, "*") } }],
         };
-        // purge_poe();
-        await client.clearContext();
-        // return
+        // await client.clearContext();
+
         response.send(reply);
       } catch {
         return response.sendStatus(500);
       }
+      // let checkNumberOfMessages = await client.checkNumberOfMessages();
+      // console.log("checkNumberOfMessages-----", checkNumberOfMessages);
+      // await client.clearContext();
     }
   });
 }
