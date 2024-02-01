@@ -1,5 +1,5 @@
 {
     "token": "Write your token here",
-    "cashed_bot": "gptforst",
+    "cached_bot": "GPT-3.5-Turbo",
     "max_word_length_per_message": 1500
 }

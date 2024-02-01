@@ -1,73 +1,27 @@
-const fs = require("fs");
 const PoeClient = require("./poe-client");
-// const { send } = require("process");
+const {
+  delay,
+  get_header_token,
+  create_poe_config_file_ifnotexist,
+  get_config,
+  // getPoeClient,
+  cach_config,
+  config,
+  empty_token_placeholder,
+} = require("./utils");
 const {
   wrap_textchunk_in_openai_jsonformat,
-  sendMessageHandler,
-  send_messages_list,
   sendMessageHandlerWord,
   get_prompt_from_dict_meessages_list,
-  delay,
-} = require("./utils");
-
-//!Cashing LoadToken============================================
-poe_config_file_path = __dirname + "/poe_config.json";
-empty_token_placeholder = "Write your token here";
-if (!fs.existsSync(poe_config_file_path)) {
-  fs.writeFileSync(
-    poe_config_file_path,
-    JSON.stringify(
-      {
-        token: empty_token_placeholder,
-        cashed_bot: "gptforst",
-        max_word_length_per_message: 1500,
-      },
-      null,
-      4
-    )
-  );
-}
-
-// console.log("dir name ", __dirname);
-// console.log("conf path  ", poe_config_file_path);
-
-const config = JSON.parse(fs.readFileSync(poe_config_file_path));
-let { token, cashed_bot, max_word_length_per_message } = config;
-
-max_word_length_per_message = max_word_length_per_message || 1500;
-cashed_bot = cashed_bot || "gptforst";
-//!===============================================================
-
-//!===============================================================
+} = require("./messages_utils");
 
 //?=================================================================
-//?=================================================================
-//?=================================================================
-//?=================================================================
-const POE_DEFAULT_BOT = cashed_bot || "gptforst";
-
-const poeClientCache = {};
-
 let botNames = [];
-// try {
-//   init_withchashed_token();
-// } catch (e) {
-//   console.log("error in init_withchashed_token ", e);
-// }
+const poeClientCache = {};
+//?=================================================================
+//?=================================================================
+//?=================================================================
 
-async function init_withchashed_token() {
-  if (token === empty_token_placeholder) {
-    console.log("please make sure to write the token in peo_config.conf");
-    return;
-  } else {
-    const client = await getPoeClient(token, false);
-    botNames = await client.getBotNames();
-  }
-}
-//?==========================================
-//?==========================================
-//?==========================================
-//?==========================================
 async function getPoeClient(token, useCache = false) {
   let client;
   if (useCache && poeClientCache[token]) {
@@ -78,7 +32,7 @@ async function getPoeClient(token, useCache = false) {
     }
     let successfulltInitialized = false;
     for (let triesLeft = 5; triesLeft > 0; triesLeft--) {
-      client = new PoeClient(token, POE_DEFAULT_BOT);
+      client = new PoeClient(token, config.cached_bot);
       successfulltInitialized = await client.initializeDriver();
       if (!successfulltInitialized) {
         await client.closeDriver();
@@ -99,16 +53,38 @@ async function getPoeClient(token, useCache = false) {
   poeClientCache[token] = client;
   return client;
 }
+//?=====================================
+// try {
+//   init_withchashed_token();
+// } catch (e) {
+//   console.log("error in init_withchashed_token ", e);
+// }
 
+async function init_withchashed_token() {
+  if (config.token === empty_token_placeholder) {
+    console.log("please make sure to write the token in peo_config.conf");
+    return;
+  } else {
+    const client = await getPoeClient(config.token, false);
+    botNames = await client.getBotNames();
+  }
+}
 //?==========================================
 /**
  * @param {import("express").Express} app
  * @param {any} jsonParser
  */
+// app.get("/testing", (req, res) => {
+//   res.send("test response");
+// });
+function testing_handler(req, res) {
+  res.send("test response");
+}
+
 function registerEndpoints(app, jsonParser) {
-  app.get("/testing", (req, res) => {
-    res.send("test response");
-  });
+  app.get("/testing", testing_handler);
+  // app.get("/v1/models", jsonParser, handleModelsRequest);
+  // app.post("/v1/chat/completions", jsonParser, handleCompletionsRequest);
 
   //!================================================================
   //!================================================================
@@ -117,23 +93,24 @@ function registerEndpoints(app, jsonParser) {
 
   app.get("/v1/models", jsonParser, async (request, response) => {
     console.log(" models Called ------------------");
-    // console.log("headers ", request.headers);
-    auth = request.headers.authorization;
-    // console.log("auth ", auth);
-    header_token = auth.replace("Bearer ", "");
+    const header_token = get_header_token(request);
+
     if (
-      (!token || token === empty_token_placeholder) &&
+      (!config.token || config.token === empty_token_placeholder) &&
       header_token.length == 0
     ) {
       return response.sendStatus(401);
+    } else if (config.token === empty_token_placeholder) {
+      config.token = header_token;
+      cach_config(config);
     }
 
     try {
       let client;
       try {
-        client = await getPoeClient(token, true);
+        client = await getPoeClient(config.token, true);
       } catch (e) {
-        client = await getPoeClient(token, false);
+        client = await getPoeClient(config.token, false);
       }
 
       botNames = await client.getBotNames();
@@ -186,7 +163,7 @@ function registerEndpoints(app, jsonParser) {
     //   return response.sendStatus(400);
     // }
 
-    if (!token || token == empty_token_placeholder) {
+    if (!config.token || config.token == empty_token_placeholder) {
       return response.sendStatus(401);
     }
 
@@ -213,13 +190,13 @@ function registerEndpoints(app, jsonParser) {
     let client;
     //uncomment it later
     // if (!botNames.includes(bot)) {
-    //   bot = POE_DEFAULT_BOT;
+    //   bot = config.cached_bot;
     // }
     try {
       try {
-        client = await getPoeClient(token, true);
+        client = await getPoeClient(config.token, true);
       } catch (e) {
-        client = await getPoeClient(token, false);
+        client = await getPoeClient(config.token, false);
       }
     } catch (error) {
       console.error(error);
@@ -236,12 +213,15 @@ function registerEndpoints(app, jsonParser) {
     //? sentm message
     // await client.sendMessage(prompt);
     // await sendMessageHandler(client, prompt);
-    
+
     try {
-      await sendMessageHandlerWord(client, prompt, max_word_length_per_message); //? send message word by word
-      
+      await sendMessageHandlerWord(
+        client,
+        prompt,
+        config.max_word_length_per_message
+      ); //? send message word by word
     } catch (error) {
-      poeClientCache = {}
+      poeClientCache = {};
       return response.sendStatus(500);
     }
     //?===========================================
